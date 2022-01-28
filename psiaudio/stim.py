@@ -758,8 +758,10 @@ class ChirpFactory(FixedWaveform):
 # Wavfiles
 ################################################################################
 @fast_cache
-def load_wav(fs, filename, level, calibration):
-    log.warning('Loading %s', filename)
+def load_wav(fs, filename, level=None, calibration=None, rescale=False):
+    '''
+    Load wav file and prepare for playback
+    '''
     file_fs, waveform = wavfile.read(filename, mmap=True)
 
     # Rescale to range -1.0 to 1.0
@@ -768,7 +770,8 @@ def load_wav(fs, filename, level, calibration):
         waveform = waveform.astype(np.float32)
         waveform = (waveform - ii.min) / (ii.max - ii.min) * 2 - 1
 
-    waveform = waveform / waveform.max()
+    if rescale:
+        waveform = waveform / waveform.max()
 
     if calibration is not None:
         sf = calibration.get_sf(1e3, level)
@@ -784,16 +787,19 @@ def load_wav(fs, filename, level, calibration):
 
 class WavFileFactory(FixedWaveform):
 
-    def __init__(self, fs, filename, level=None, calibration=None):
+    def __init__(self, fs, filename, level=None, calibration=None,
+                 rescale=False):
         self.fs = fs
-        self.filename = filename
+        self.filename = Path(filename)
         self.level = level
         self.calibration = calibration
+        self.rescale = rescale
         self.reset()
 
     @property
     def waveform(self):
-        return load_wav(self.fs, self.filename, self.level, self.calibration)
+        return load_wav(self.fs, self.filename, self.level, self.calibration,
+                        self.rescale)
 
 
 class WavSequenceFactory(ContinuousWaveform):
