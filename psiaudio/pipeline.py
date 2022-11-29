@@ -273,6 +273,8 @@ def concat(arrays, axis=-1):
 def coroutine(func):
     '''Decorator to auto-start a coroutine.'''
     def start(*args, **kwargs):
+        args = [a.send if isinstance(a, types.GeneratorType) else a for a in args]
+        kwargs = {k: v.send if isinstance(v, types.GeneratorType) else v for k, v in kwargs.items()}
         cr = func(*args, **kwargs)
         next(cr)
         return cr
