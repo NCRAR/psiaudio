@@ -800,6 +800,14 @@ def average(n, target):
         data = np.concatenate((data, new_data), axis=axis)
 
 
+@coroutine
+def bitmask(bit, target):
+    while True:
+        data = (yield)
+        ttl = ((data >> bit) & 1).astype('bool')
+        target(ttl)
+
+
 ################################################################################
 # Multichannel continuous data
 ################################################################################
